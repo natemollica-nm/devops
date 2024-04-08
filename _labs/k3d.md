@@ -37,19 +37,42 @@ $ k3d registry create -p 5002 registry.localhost
 $ k3d cluster create c1 --registry-use k3d-registry.localhost:5002
 ```
 
-> Note: using `k3d cluster create` automatically merges and switches kube-context to the latest k3d cluster built.
+> _**Note**: using `k3d cluster create` automatically merges and switches kube-context to the latest k3d cluster built._
 
 
 ### **Pushing Docker images to k3d Local Repo**
 
-Tag Docker image with k3d repo name
+Apply k3d repo tag name to image:
 
 ```shell
-$ docker tag hashicorp/consul-dev-image:local k3d-registry.localhost:5002/consul:latest
+$ docker tag hashicorp/consul-dev:latest k3d-registry.localhost:5002/consul-dev:latest
 ```
 
-Push image to the k3d repo
+Push image to the k3d repo:
 
 ```shell
-$ docker push k3d-registry.localhost:5002/consul:latest
+$ docker push k3d-registry.localhost:5002/consul-dev:latest
+```
+
+Retrieve Docker image repository digest:
+
+```shell
+$ docker inspect --format='{{index .RepoDigests 0}}' "$registryPath"/consul-dev:latest
+  k3d-registry.localhost:5002/consul-dev@sha256:27708036dc0496562b1f9af487f418a5685dc63540eca34f25843b6f7ae69512
+```
+
+Use Docker repo digest name for deployments, helm overrides, etc.:
+
+```yaml
+# File: values.yaml
+global:
+  name: consul
+  image: "k3d-registry.localhost:5002/consul-dev@sha256:27708036dc0496562b1f9af487f418a5685dc63540eca34f25843b6f7ae69512"
+...
+```
+
+Install/apply Kubernetes component as normal:
+
+```shell
+$ helm install consul-cluster-01 hashicorp/consul --namespace consul --values values.yaml
 ```
