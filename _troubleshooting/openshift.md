@@ -1,9 +1,9 @@
 ---
-title:  "OpenShift: Troubleshooting"
+title:  "OpenShift: tcpdump"
 layout: default
 ---
 
-# **OpenShift: Troubleshooting**
+# **OpenShift: tcpdump**
 {: .no_toc }
 
 Tips and tricks for troubleshooting networking issues on OpenShift.

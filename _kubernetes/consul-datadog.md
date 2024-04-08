@@ -5,6 +5,17 @@ layout: default
 
 ## Consul on Kubernetes | Datadog DogstatsD Configuration
 
+![consul-dogstatsd](https://github.com/natemollica-nm/devops/assets/57850649/17848477-8c2d-4fc7-8709-95ecd3db4ba1)
+
+For user running **_Consul versions less than 1.16.x_**, Datadog DogstatsD integration requires manual 
+configuration for collecting Consul Server specific runtime metrics. This article aims to outline the 
+manual steps required to configure a consul-k8s environment for metrics collection via [Datadog DogstatsD](https://docs.datadoghq.com/developers/dogstatsd/?tab=kubernetes).
+
+For users running **_Consul versions >= 1.16.x_**, the Consul helm chart provides [datadog-specific overrides](https://github.com/hashicorp/consul-k8s/blob/02b8d33719e1958f5b272ef685b611414093a974/charts/consul/values.yaml#L663-L785)
+that make automating this process easier based on runtime Consul deployment configurations. This method 
+of implementation is recommended for these users in this case. See the Configure Datadog metrics collection
+for [Consul on Kubernetes: DogstatsD](https://developer.hashicorp.com/consul/docs/k8s/deployment-configurations/datadog#dogstatsd) documentation for more information regarding this feature.
+
 ### Consul Server Helm Overrides
 
 * `server.extraLabels`: Configures [Datadog Unified Service Tagging](https://docs.datadoghq.com/getting_started/tagging/unified_service_tagging/?tab=kubernetes)
