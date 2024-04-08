@@ -4,19 +4,19 @@ layout: default
 nav_order: 2
 ---
 
-|                      |                                                           |
-|----------------------|-----------------------------------------------------------|
-| **Where I'm at**     | San Diego, CA                                             |
-| **Where I'm from**   | Albuquerque, NM                                           |
-| **Family**           | Proud husband + father 😁                                 |
-| **School**           | National University: BS Computer Science (in progress...) |
-| **Current Position** | HashiCorp: Sr. Designated Support Engineer (Consul)       |
-| **Hobbies**          | Distributed Systems and Network Engineering enthusiast    |
+|                      |                                                                                                   |
+|----------------------|---------------------------------------------------------------------------------------------------|
+| **Where I'm at**     | San Diego, CA                                                                                     |
+| **Where I'm from**   | Albuquerque, NM                                                                                   |
+| **Family**           | Proud husband + father 😁                                                                         |
+| **School**           | **[National University](https://www.nu.edu/)**: _[BS in Computer Science][A001] (in progress...)_ |
+| **Current Position** | HashiCorp: Sr. Designated Support Engineer (Consul)                                               |
+| **Hobbies**          | Distributed Systems and Network Engineering enthusiast                                            |
 
 
 ### Career Background
 
-![Consul](./assets/consul.svg){:width="9%"} **Consul Support Engineer**
+![Consul](./assets/consul.svg){:width="9%"} **HashiCorp: Consul Support Engineer**
 
 Drawing from my extensive experience in network engineering, DevOps, and
 systems engineering, I have consistently spearheaded innovation and
@@ -42,3 +42,6 @@ my technical acumen, attention to detail, and ability to perform under pressure.
 
 My journey underscores a steadfast commitment to delivering sophisticated solutions and fostering
 technical excellence in fast-paced environments.
+
+
+[A001]: https://www.nu.edu/degrees/engineering-and-computing/programs/bachelor-of-science-computer-science/

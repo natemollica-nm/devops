@@ -4,8 +4,18 @@ layout: default
 ---
 
 # **k3d**
+{: .no_toc }
 
 Useful, lightweight local development for Kubernetes on Docker.
+{: .fs-6 .fw-300 }
+
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
+
+---
 
 ## Install
 
@@ -15,7 +25,7 @@ $ curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
 ---
 
-## **Configure k3d local registry**
+## Configure k3d local registry
 
 Good if testing out local Docker builds prior to pushing to remote repo.
 
@@ -32,18 +42,7 @@ Create the registry
 $ k3d registry create -p 5002 registry.localhost
 ```
 
-### **Run a local Kubernetes cluster (connect with local registry)**
-
-```shell
-# Create a k3d cluster named "c1" | Resulting context name: k3d-c1
-$ k3d cluster create c1 --registry-use k3d-registry.localhost:5002
-```
-
-> _**Note**: using `k3d cluster create` automatically merges and switches kube-context to the latest k3d cluster built._
-
----
-
-### **Pushing Docker images to k3d Local Repo**
+### Pushing Docker images to k3d Local Repo
 
 Apply k3d repo tag name to image:
 
@@ -57,9 +56,7 @@ Push image to the k3d repo:
 $ docker push k3d-registry.localhost:5002/consul-dev:latest
 ```
 
----
-
-### **Using k3d Repo Images**
+### Using k3d Repo Images
 
 Retrieve Docker image repository digest:
 
@@ -80,19 +77,34 @@ global:
 
 Install/apply Kubernetes component as normal:
 
+> _**Note**: The k3d cluster is assumed to be running (i.e., `k3d cluster create` already ran) in the below example._
+
 ```shell
+## Run helm installation using k3d repo image.
 $ helm install consul-cluster-01 hashicorp/consul --namespace consul --values values.yaml
 ```
 
 ---
 
-## **k3d Multicluster Testing**
+## Run a local Kubernetes cluster
+
+```shell
+# Create a k3d cluster named "c1" that uses local repo k3d-registry.localhost:5002
+# Resulting context name: k3d-c1
+$ k3d cluster create c1 --registry-use k3d-registry.localhost:5002
+```
+
+> _**Note**: using `k3d cluster create` automatically merges and switches kube-context to the latest k3d cluster built._
+
+---
+
+## k3d Multicluster Testing
 
 Working with multiple Kubernetes clusters to simulate HA scenarios can get expensive 
 when using cloud based resources. k3d offers seamless multicluster connectivity using 
 underlying Docker networking resources.
 
-### **Deploy multiple k3d clusters**
+### Deploy multiple k3d clusters
 
 ```shell
 # Create a k3d clusters named "c1" and "c2"
@@ -101,14 +113,14 @@ $ k3d cluster create c1 --registry-use k3d-registry.localhost:5002 && \
   k3d cluster create c2 --registry-use k3d-registry.localhost:5002
 ```
 
-### **Optionally Simulate AWS Regionally Tagging**
+### Optionally Simulate AWS Regionally Tagging
 
 ```shell
 $ kubectl --context k3d-c1 label node k3d-c1-server-0 topology.kubernetes.io/region="us-east-1" && \
   kubectl --context k3d-c2 label node k3d-c2-server-0 topology.kubernetes.io/region="us-east-2"
 ```
 
-### **Establish Docker Network Connectivity between Clusters**
+### Establish Docker Network Connectivity between Clusters
 
 ```shell
 # Establish connectivity between the clusters
