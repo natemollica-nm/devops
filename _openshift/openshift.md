@@ -73,12 +73,16 @@ resolving as expected.
 ```shell
 $ dig +noall +answer @dns-server.natemollica-nm.github.io api.openshift-cluster.natemollica-nm.github.io
   api.openshift-cluster.natemollica-nm.github.io.    60      IN      A       124.8.186.127
+  
 $ dig +noall +answer @dns-server.natemollica-nm.github.io api-int.openshift-cluster.natemollica-nm.github.io
   api-int.openshift-cluster.natemollica-nm.github.io.    60      IN      A       124.8.186.127
+  
 $ dig +noall +answer @dns-server.natemollica-nm.github.io openshift-cluster-console.apps.openshift-cluster.natemollica-nm.github.io
   openshift-cluster-console.apps.openshift-cluster.natemollica-nm.github.io.    60      IN      A       124.8.186.127
+  
 $ dig +noall +answer @dns-server.natemollica-nm.github.io my-fake-service.apps.openshift-cluster.natemollica-nm.github.io
   my-fake-service.apps.openshift-cluster.natemollica-nm.github.io.    60      IN      A       124.8.186.127
+  
 $ dig +noall +answer @dns-server.natemollica-nm.github.io bootstrap.openshift-cluster.natemollica-nm.github.io
   bootstrap.openshift-cluster.natemollica-nm.github.io.    60      IN      A       124.8.186.127
 ```
