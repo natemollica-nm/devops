@@ -1,4 +1,4 @@
-title: natemollica-nm.io
+title: natemollica-nm.github.io
 description: Personal gh-pages site hosting notes on tech notes!
 theme: just-the-docs
 logo: "/assets/logo.png"
@@ -30,6 +30,9 @@ collections:
   labs:
     permalink: "/:collection/:path/"
     output: true
+  troubleshooting:
+    permalink: "/:collection/:path/"
+    output: true
 
 just_the_docs:
   # Define which collections are used in just-the-docs
@@ -55,3 +58,5 @@ just_the_docs:
       name: OpenShift
     labs:
       name: Labs
+    troubleshooting:
+      name: Troubleshooting

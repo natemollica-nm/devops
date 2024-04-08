@@ -4,6 +4,10 @@ layout: default
 nav_order: 2
 ---
 
+# About
+
+## Personal Details
+
 |                      |                                                                                                   |
 |----------------------|---------------------------------------------------------------------------------------------------|
 | **Where I'm at**     | San Diego, CA                                                                                     |
@@ -13,8 +17,9 @@ nav_order: 2
 | **Current Position** | HashiCorp: Sr. Designated Support Engineer (Consul)                                               |
 | **Hobbies**          | Distributed Systems and Network Engineering enthusiast                                            |
 
+---
 
-### Career Background
+## Career Background
 
 ![Consul](./assets/consul.svg){:width="9%"} **HashiCorp: Consul Support Engineer**
 
