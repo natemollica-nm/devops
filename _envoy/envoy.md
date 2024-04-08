@@ -3,7 +3,7 @@ title:  Envoy
 layout: default
 ---
 
-![Envoy](../assets/envoy.png){:width="25px"}
+![Envoy](../assets/envoy.png){:width="25%"}
 
 ---
 ## Envoy Building Blocks
