@@ -27,6 +27,9 @@ collections:
   openshift:
     permalink: "/:collection/:path/"
     output: true
+  labs:
+    permalink: "/:collection/:path/"
+    output: true
 
 just_the_docs:
   # Define which collections are used in just-the-docs
@@ -50,3 +53,5 @@ just_the_docs:
       name: Kubernetes
     openshift:
       name: OpenShift
+    labs:
+      name: Labs
