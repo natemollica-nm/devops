@@ -1,8 +1,52 @@
-title: Just the Docs Template
-description: A starter template for a Jeykll site using the Just the Docs theme!
+title: natemollica-nm.io
+description: Personal gh-pages site hosting notes on tech notes!
 theme: just-the-docs
+logo: "/assets/logo.png"
+favicon_icon: "/assets/favicon.ico"
 
-url: https://just-the-docs.github.io
+url: https://natemollica-nm.github.io/devops
 
+aux_links_new_tab: true
 aux_links:
-  Template Repository: https://github.com/just-the-docs/just-the-docs-template
+  site-repo: https://github.com/natemollica-nm/devops
+
+color_scheme: dark
+
+# Define Jekyll collections
+collections:
+  # Define a collection named "docs", its documents reside in the "_docs" directory
+  docs:
+    permalink: "/:collection/:path/"
+    output: true
+  envoy:
+    permalink: "/:collection/:path/"
+    output: true
+  kubernetes:
+    permalink: "/:collection/:path/"
+    output: true
+  openshift:
+    permalink: "/:collection/:path/"
+    output: true
+
+just_the_docs:
+  # Define which collections are used in just-the-docs
+  collections:
+    # Reference the "tests" collection
+    docs:
+      # Give the collection a name
+      name: Docs
+      # Exclude the collection from the navigation
+      # Supports true or false (default)
+      nav_exclude: false
+      # Fold the collection in the navigation
+      # Supports true or false (default)
+      nav_fold: false  # note: this option is new in v0.4
+      # Exclude the collection from the search
+      # Supports true or false (default)
+      search_exclude: false
+    envoy:
+      name: Envoy
+    kubernetes:
+      name: Kubernetes
+    openshift:
+      name: OpenShift
