@@ -3,7 +3,7 @@ title:  Envoy
 layout: default
 ---
 
-![Envoy](../assets/envoy.png){:width="25%"}
+![Envoy](https://github.com/natemollica-nm/devops/blob/main/assets/envoy.png){:width="25%"}
 
 ---
 ## Envoy Building Blocks
@@ -29,7 +29,7 @@ this to Envoy.
 
 ## Architecture
 
-![EnvoyArch](/assets/envoy-arch.png)
+![EnvoyArch](https://github.com/natemollica-nm/devops/blob/main/assets/envoy-arch.png)
 
 ## Benefits
 
