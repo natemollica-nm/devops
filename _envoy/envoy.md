@@ -6,6 +6,7 @@ layout: default
 ![envoy](https://github.com/natemollica-nm/devops/assets/57850649/48af63a9-5a57-4246-a371-4bbee8e0c4a0){:width="25%"}
 
 ---
+
 ## Envoy Building Blocks
 
 * **Listeners**
