@@ -4,4 +4,4 @@ layout: default
 ---
 
 
-## ![](/assets/kube.svg){:width="50px"} Kubernetes
+## ![](../assets/kube.svg){:width="50px"} Kubernetes

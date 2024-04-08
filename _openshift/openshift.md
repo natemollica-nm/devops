@@ -4,4 +4,4 @@ layout: default
 ---
 
 
-## ![](/assets/openshift.svg){:width="50px"} OpenShift
+## ![](../assets/openshift.svg){:width="50px"} OpenShift
