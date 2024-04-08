@@ -64,7 +64,7 @@ $ docker push k3d-registry.localhost:5002/consul-dev:latest
 Retrieve Docker image repository digest:
 
 ```shell
-$ docker inspect --format='{{index .RepoDigests 0}}' "$registryPath"/consul-dev:latest
+$ docker inspect --format='{% raw %}{{index .RepoDigests 0}}{% endraw %}' "$registryPath"/consul-dev:latest
   k3d-registry.localhost:5002/consul-dev@sha256:27708036dc0496562b1f9af487f418a5685dc63540eca34f25843b6f7ae69512
 ```
 
