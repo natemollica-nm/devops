@@ -1,6 +1,7 @@
 ---
 title:  k3d
 layout: default
+nav_order: 1
 ---
 
 # **k3d**

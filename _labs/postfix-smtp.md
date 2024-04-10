@@ -1,6 +1,7 @@
 ---
-title:  postfix-smtp
+title:  Postfix SMTP Server
 layout: default
+nav_order: 2
 ---
 
 # **Postfix SMTP Server on AWS EC2**

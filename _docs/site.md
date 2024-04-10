@@ -1,6 +1,7 @@
 ---
 name: Site
 layout: default
+nav_exclude: true
 ---
 
 ## Install and Configure Ruby & Jekyll

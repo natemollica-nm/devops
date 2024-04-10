@@ -30,6 +30,9 @@ collections:
   labs:
     permalink: "/:collection/:path/"
     output: true
+  scripts:
+    permalink: "/:collection/:path/"
+    output: true
   troubleshooting:
     permalink: "/:collection/:path/"
     output: true
@@ -58,5 +61,7 @@ just_the_docs:
       name: OpenShift
     labs:
       name: Labs
+    scripts:
+      name: Scripts
     troubleshooting:
       name: Troubleshooting

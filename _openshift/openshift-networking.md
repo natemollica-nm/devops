@@ -1,12 +1,14 @@
 ---
-title:  "OpenShift"
+title:  "OpenShift: Networking"
 layout: default
+parent: OpenShift
+nav_order: 2
 ---
 
-# ![openshift](https://github.com/natemollica-nm/devops/assets/57850649/34711e45-1e7f-40d6-a900-309195d4a26f){:width="10%"} OpenShift: Installation & Networking
+# ![openshift](https://github.com/natemollica-nm/devops/assets/57850649/34711e45-1e7f-40d6-a900-309195d4a26f){:width="10%"} OpenShift: Networking
 {: .no_toc }
 
-Installation and Networking concepts for OpenShift.
+Networking concepts for OpenShift.
 {: .fs-6 .fw-300 }
 
 ## Table of contents
@@ -17,8 +19,26 @@ Installation and Networking concepts for OpenShift.
 
 ---
 
-## OpenShift Installation Configuration
+## OpenShift Networking: Requirements
 
+* Connectivity between all cluster nodes
+* Connectivity for each node to the internet
+* Access to an NTP server for time synchronization between the cluster nodes
+* A DHCP server unless using static IP addressing.
+* A base domain name. You must ensure that the following requirements are met:
+  * There is no wildcard, such as `*.<cluster_name>.<base_domain>`, or the installation will not proceed.
+  * A DNS `A/AAAA` record for `api.<cluster_name>.<base_domain>`.
+  * A DNS `A/AAAA` record with a wildcard for `*.apps.<cluster_name>.<base_domain>`.
+* Port `6443` is open for the API URL if you intend to allow users outside the firewall to access the cluster 
+  via the oc CLI tool.
+* Port `443` is open for the console if you intend to allow users outside the firewall to access the console.
+* A DNS `A/AAAA` record for each node in the cluster when using User Managed Networking, or the installation 
+  will not proceed. DNS `A/AAAA` records are required for each node in the cluster when using Cluster Managed 
+  Networking after installation is complete in order to connect to the cluster, but installation can proceed 
+  without the `A/AAAA` records when using Cluster Managed Networking.
+* A DNS PTR record for each node in the cluster if you want to boot with the preset hostname when using static 
+  IP addressing. Otherwise, the Assisted Installer has an automatic node renaming feature when using static IP 
+  addressing that will rename the nodes to their network interface MAC address.
 
 ---
 
@@ -112,81 +132,6 @@ in the `Network.config.openshift.io` API group:
 * Configurations where all Service Mesh components are contained within a single OpenShift Container Platform cluster.
 * Configurations that do not integrate external services such as virtual machines.
 * Red Hat OpenShift Service Mesh does not support `EnvoyFilter` configuration except where explicitly documented.
-
-
-# Appendix A: OpenShift Installation Configuration Example
-
-
-```yaml
-apiVersion: v1
-baseDomain: natemollica-nm.github.io
-credentialsMode: Manual
-metadata:
-  name: openshift-cluster
-controlPlane:
-  architecture: amd64
-  hyperthreading: Enabled
-  name: master
-  replicas: 3
-  platform:
-    aws:
-      zones: [
-        "us-east-2a",
-        "us-east-2b",
-        "us-east-2c"
-      ]
-      rootVolume:
-        iops: 4000
-        size: 200
-        type: io1
-      type: m6i.xlarge
-compute:
-- architecture: amd64
-  hyperthreading: Enabled
-  name: worker
-  replicas: 3
-  platform:
-    aws:
-      zones: var.subnet_azs
-      rootVolume:
-        iops: 4000
-        size: 200
-        type: io1
-      type: m6i.xlarge
-networking:
-  networkType: OVNKubernetes
-  clusterNetwork:
-    - cidr: 10.128.0.0/14
-      hostPrefix: 23
-  machineNetwork:
-    - cidr: 10.0.0.0/16
-  serviceNetwork:
-    - 172.30.0.0/16
-platform:
-  aws:
-    region: "us-east-2"
-    # Public and Private Subnet IP CIDRs (Overall Subnet: 10.0.0.0/16)
-    subnets: [
-      "10.0.0.0/19",
-      "10.0.64.0/19",
-      "10.0.128.0/19",
-      "10.0.32.0/19",
-      "10.0.96.0/19",
-      "10.0.160.0/19"
-    ]
-    lbType: NLB
-    propagateUserTags: true
-    userTags:
-      adminContact: natemollica
-      costCenter: 0669
-    amiID: ami-0c5d3e03c0ab9b19a
-    serviceEndpoints:
-      - name: ec2
-        url: https://vpce-id.ec2.us-east-2.vpce.amazonaws.com
-fips: false
-pullSecret: '{"auths": ...}'
-sshKey: ssh-ed25519 AAAA...
-```
 
 
 [CNO]: https://docs.openshift.com/container-platform/4.15/post_installation_configuration/network-configuration.html#nw-operator-cr_post-install-network-configuration
