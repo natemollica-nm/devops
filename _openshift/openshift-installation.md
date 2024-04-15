@@ -21,6 +21,8 @@ Installation concepts for OpenShift.
 
 ## OpenShift Installation Configuration
 
+* Agent-based Installer `install-config.yaml` Parameters: [Docs][install-config-agent-installer] 
+
 ---
 
 # Appendix A: OpenShift Installation Configuration Example
@@ -99,3 +101,4 @@ sshKey: ssh-ed25519 AAAA...
 
 
 [openshift-logo]: https://github.com/natemollica-nm/devops/assets/57850649/34711e45-1e7f-40d6-a900-309195d4a26f
+[install-config-agent-installer]: https://docs.openshift.com/container-platform/4.15/installing/installing_with_agent_based_installer/installation-config-parameters-agent.html

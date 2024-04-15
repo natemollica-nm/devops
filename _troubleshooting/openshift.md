@@ -138,6 +138,14 @@ Deploy OpenShift debug pod to selected node:
 $ oc debug node/"${SELECTED_NODE}"
 ```
 
+(Optional) If you want to deploy the debug pod without immediately dropping into a terminal session:
+
+```shell
+$ oc debug node/"$SELECTED_NODE" \
+    --as-root=true \
+    --preserve-pod=true --quiet=true --tty=false -- /bin/sh -c "while true; do sleep 2; done" &
+```
+
 Set the required `nsenter` parameters for reaching the pod's interface for inspection:
 
 ```shell

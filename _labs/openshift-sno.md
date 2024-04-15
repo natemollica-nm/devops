@@ -18,6 +18,12 @@ Installation guide for OpenShift on Single Node.
 
 ---
 
+## References
+
+* [OpenShift Assisted Installer](https://developers.redhat.com/api-catalog/api/assisted-install-service#content-operations-group-installer)
+* [Installing with Assisted Installer API](https://access.redhat.com/documentation/fr-fr/assisted_installer_for_openshift_container_platform/2023/html/assisted_installer_for_openshift_container_platform/installing-with-api)
+* [Deploying Single Node OpenShift via Assisted Installer API](https://schmaustech.blogspot.com/2021/08/deploying-single-node-openshift-via.html)
+
 ## Requirements
 
 **Resource Requirements**
@@ -58,7 +64,7 @@ Run the installer package and complete application installation.
 ### Generate openshift ssh-keys for OpenShift local node
 
 ```shell
-$ ssh-keygen -t ed25519 -N '' -f .openshift-local/openshift-key.pem
+$ ssh-keygen -t ed25519 -N '' -f openshift-key.pem
 ```
 
 ---
@@ -129,22 +135,43 @@ $ podman build -f Containerfile -t openshift-install --build-arg VERSION="${OPEN
 Set `OFFLINE_API_TOKEN` environment variable to this value.
 
 ```shell
-export OFFLINE_API_TOKEN="eyJhbG...
+export OFFLINE_API_TOKEN="eyJhbG..."
 ```
 
 ---
 
-### Generate RedHat SSO Authorization Bearer Token
+### Obtain Assisted Installer REST API Token 
+
+> **_Note_**: _This token expires every 15 minutes._
 
 ```shell
-## SSO Redhat Authorization Bearer Token
-$ export TOKEN="$(curl \
-    --silent \
-    --data-urlencode "grant_type=refresh_token" \
-    --data-urlencode "client_id=cloud-services" \
-    --data-urlencode "refresh_token=${OFFLINE_API_TOKEN}" \
-    https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token | \
-    jq -r .access_token)"
+## Redhat Authorization Bearer Token
+$ export TOKEN=$( \
+      curl \
+      --silent \
+      --header "Accept: application/json" \
+      --header "Content-Type: application/x-www-form-urlencoded" \
+      --data-urlencode "grant_type=refresh_token" \
+      --data-urlencode "client_id=cloud-services" \
+      --data-urlencode "refresh_token=${OFFLINE_API_TOKEN}" \
+      "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token" \
+      | jq --raw-output ".access_token" \
+)
+```
+
+Verify API Access:
+
+```shell
+$ curl -s https://api.openshift.com/api/assisted-install/v2/component-versions -H "Authorization: Bearer ${TOKEN}" | jq
+{
+  "release_tag": "v2.30.2",
+  "versions": {
+    "assisted-installer": "registry.redhat.io/rhai-tech-preview/assisted-installer-rhel8:v1.0.0-326",
+    "assisted-installer-controller": "registry.redhat.io/rhai-tech-preview/assisted-installer-reporter-rhel8:v1.0.0-404",
+    "assisted-installer-service": "quay.io/app-sre/assisted-service:c9c2dbf",
+    "discovery-agent": "registry.redhat.io/rhai-tech-preview/assisted-installer-agent-rhel8:v1.0.0-312"
+  }
+}
 ```
 
 ---
@@ -153,13 +180,14 @@ $ export TOKEN="$(curl \
 
 ```shell
 # Determine localhost Network Interface IP
-export HOST_IP="$(ifconfig en4 | grep -oE 'inet [0-9.]+' | tr -d 'inet\s' | awk '{print $2}' | sed 's/^[[:space:]]*//')"
+export HOST_IP="$(ifconfig en4 | grep -oE 'inet [0-9.]+' | tr -d 'inet\s' | sed 's/^[[:space:]]*//')"
 ## OpenShift Cluster Settings
-export OPENSHIFT_SSH_KEY="$(cat $(pwd)/.openshift-local/openshift-key.pem)"
-export OPENSHIFT_VERSION=4.14.12
+export PULL_SECRET="$(jq -rc . < pull-secret.txt | sed 's/\"/\\"/g')"
+export OPENSHIFT_SSH_KEY="$(cat openshift-key.pem.pub)"
+export OPENSHIFT_VERSION=4.13.38
 export OPENSHIFT_DOMAIN=openshift.local.io
 export OPENSHIFT_CLUSTER=consul-openshift-sno
-export OPENSHIFT_HOSTNAME=consul-openshift-sno
+export OPENSHIFT_HOSTNAME=conri-openshift-sno
 ## OpenShift Static IP Settings
 export SNO_NIC=enp0s1
 export SNO_NIC_MAC_ADDRESS="4E:B5:D2:58:F8:56"
@@ -179,7 +207,7 @@ export ASSISTED_SERVICE_API="api.openshift.com"
 Initialize and configure podman virtual machine to run in `root` user mode:
 
 ```shell
-$ podman init && \
+$ podman machine init && \
   podman machine set --rootful
 ```
 
@@ -212,13 +240,14 @@ port=53
 expand-hosts
 log-queries
 log-facility=-
-local=/$OPENSHIFT_DOMAIN/
-domain=$OPENSHIFT_DOMAIN
-address=/apps.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
-address=/api.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
-address=/api-int.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
-address=/$OPENSHIFT_HOSTNAME.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
-ptr-record=$PTR.in-addr.arpa,$OPENSHIFT_HOSTNAME.$OPENSHIFT_DOMAIN
+local=/local.io/
+domain=local.io
+address=/apps.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
+address=/api.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
+address=/api-int.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
+address=/bootstrap.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
+address=/$OPENSHIFT_HOSTNAME.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN/$OPENSHIFT_IP
+ptr-record=$PTR.in-addr.arpa,$OPENSHIFT_HOSTNAME.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN
 rev-server=$CIDR,127.0.0.1
 {% endhighlight %}
 
@@ -268,7 +297,7 @@ $ echo "nameserver 127.0.0.1" | sudo tee "/etc/resolver/$OPENSHIFT_DOMAIN"
 Update `/etc/hosts` with OpenShift domain:
 
 ```shell
-$ echo "$OPENSHIFT_IP    $OPENSHIFT_DOMAIN" | sudo tee -a /etc/hosts
+$ echo "$OPENSHIFT_IP    api.$OPENSHIFT_CLUSTER.$OPENSHIFT_DOMAIN" | sudo tee -a /etc/hosts
 ```
 
 ---
@@ -298,10 +327,11 @@ $ dig +noall +answer @127.0.0.1 bootstrap."$OPENSHIFT_CLUSTER"."$OPENSHIFT_DOMAI
 
 Create OpenShift SNO Cluster API Payload (leave variable syntax in place):
 
-**File**: `ai-installer-template.json`
+**File**: `assisted-installer-deployment-template.json`
 ```json
 {
   "name": "$OPENSHIFT_CLUSTER",
+  "cpu_architecture" : "arm64",
   "openshift_version": "$OPENSHIFT_VERSION",
   "ocp_release_image": "$OCP_RELEASE_IMAGE",
   "base_dns_domain": "$OPENSHIFT_DOMAIN",
@@ -309,105 +339,284 @@ Create OpenShift SNO Cluster API Payload (leave variable syntax in place):
   "user_managed_networking": true,
   "vip_dhcp_allocation": false,
   "high_availability_mode": "None",
-  "ssh_public_key": "$SSH_KEY_LOCAL",
+  "ssh_public_key": "$OPENSHIFT_SSH_KEY",
   "pull_secret": "$PULL_SECRET",
   "network_type": "OVNKubernetes"
 }
 ```
 
-Use template file `ai-installer-template.json` and `envsubst` to render payload:
+Use template file `assisted-installer-deployment-template.json` and `envsubst` to render payload:
 
 ```shell
-$ envsubst < ai-installer-template.json > assisted-installer-deployment.json
+$ envsubst < assisted-installer-deployment-template.json > assisted-installer-deployment.json
 ```
 
 Deploy OpenShift Cluster & Obtain Cluster ID:
 
-```bash
-# Create NMSTATE tmp file
-$ DATA=$(mktemp)
-
-# Deploy cluster and set Cluster ID environment variable
-$ CLUSTER_ID=$(curl --silent \
+```shell
+# Register cluster and obtain ClusterID
+$ export CLUSTER_ID=$(curl --silent \
     --request POST \
     --header "Content-Type: application/json" \
     --header "Authorization: Bearer $TOKEN" \
     --data @./assisted-installer-deployment.json \
-    "https://$ASSISTED_SERVICE_API/api/assisted-install/v1/clusters" \
+    "https://api.openshift.com/api/assisted-install/v2/clusters" \
     | jq -r '.id' )
 ```
 
-## Configure SNO Static Networking NMSTATE:
+Check status of cluster:
 
-Configure `nmstate.yaml` for static networking:
+```shell
+$ curl \
+  --silent \
+  --header "Content-Type: application/json" \
+  --header "Authorization: Bearer $TOKEN" \
+  --request GET "https://api.openshift.com/api/assisted-install/v2/clusters/$CLUSTER_ID" \
+  | jq
+```
+
+## Register Cluster Infrastructure Environment
+
+Create Infrastructure template payload:
+
+**File**: `ai-infra-template.json`
+```json
+{
+  "name": "$OPENSHIFT_CLUSTER-infra",
+  "image_type":"full-iso",
+  "cluster_id": "$CLUSTER_ID",
+  "cpu_architecture" : "arm64",
+  "pull_secret": "$PULL_SECRET"
+}
+```
+
+Use template file `ai-infra-template.json` and `envsubst` to render payload:
+
+```shell
+$ envsubst < ai-infra-template.json > ai-infra-deployment.json
+```
+
+Register OpenShift Cluster Infrastructure & Obtain InfrastructureID:
+
+```shell
+$ export INFRA_ENV_ID=$(curl \
+    --silent \
+    --header "Authorization: Bearer ${TOKEN}" \
+    --header "Content-Type: application/json" \
+    --data @./ai-infra-deployment.json \
+    "https://api.openshift.com/api/assisted-install/v2/infra-envs" \
+    | jq -r '.id' )
+```
+
+Verify Infrastructure Registration:
+
+```shell
+$ curl \
+  --silent \
+  --request GET \
+  --header "Authorization: Bearer $TOKEN" \
+  --header "Content-Type: application/json" \
+  --url "https://api.openshift.com/api/assisted-install/v2/infra-envs/$INFRA_ENV_ID" \
+  | jq .
+```
+
+## Configure Infrastructure Static Networking
+
+Configure `nmstate-template.yaml` for static networking:
 
 ```yaml
 dns-resolver:
   config:
     server:
-      - 192.168.0.40
+      - "$OPENSHIFT_IP"
 interfaces:
   - ipv4:
       enabled: true
       address:
-        - ip: 192.168.0.40
+        - ip: "$OPENSHIFT_IP"
           prefix-length: 24
       dhcp: false
-    name: enp0s1
+    name: "$SNO_NIC"
     state: up
     type: ethernet
 routes:
   config:
     - destination: 0.0.0.0/0
-      next-hop-address: 192.168.0.1
-      next-hop-interface: enp0s1
+      next-hop-address: "$GATEWAY"
+      next-hop-interface: "$SNO_NIC"
       table-id: 254
 ```
 
-Generate Static Networking Data:
+Use template file `nmstate-template.yaml` and `envsubst` to render yaml for payload:
 
 ```shell
-jq --null-input \
-  --arg OPENSHIFT_SSH_KEY "$OPENSHIFT_SSH_KEY" \
-  --arg NMSTATE_YAML "$(cat nmstate.yaml)" \
-  --arg MAC_ADDRESS "$SNO_NIC_MAC_ADDRESS" \
-  --arg NIC "$SNO_NIC" \
-'{
-  "ssh_public_key": $OPENSHIFT_SSH_KEY,
-  "image_type": "full-iso",
+$ envsubst < nmstate-template.yaml > nmstate.yaml
+```
+
+
+```shell
+$ curl \
+  --silent \
+  --request PATCH \
+  --header "Authorization: Bearer $TOKEN" \
+  --header 'Content-Type: application/json' \
+  --url "https://api.openshift.com/api/assisted-install/v2/infra-envs/$INFRA_ENV_ID" \
+  --data "$(jq \
+      --null-input \
+      --arg NMSTATE_YAML "$(cat nmstate.yaml)" \
+      --arg MAC_ADDRESS "$SNO_NIC_MAC_ADDRESS" \
+      --arg NIC "$SNO_NIC" '{
   "static_network_config": [
     {
-      "network_yaml": $NMSTATE_YAML,
-      "mac_interface_map": [{"mac_address": "$MAC_ADDRESS", "logical_nic_name": "$NIC"}]
+      "mac_interface_map": [
+        {
+          "logical_nic_name": $NIC,
+          "mac_address": $MAC_ADDRESS
+        }
+      ],
+      "network_yaml": $NMSTATE_YAML
     }
   ]
-}' >> "$DATA"
+}')" | jq -r '.static_network_config'
 ```
 
-Generate AI installer `iso` from `https://api.openshift.com/api/assisted-install/`:
+**Sample Return**
 
-```shell
-$ curl -X POST \
-  "https://$ASSISTED_SERVICE_API/api/assisted-install/v1/clusters/$CLUSTER_ID/downloads/image" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d @"$DATA"
+```json
+[
+  {
+    "mac_interface_map": [
+      {
+        "logical_nic_name": "enp0s1",
+        "mac_address": "4E:B5:D2:58:F8:56"
+      }
+    ],
+    "network_yaml": "dns-resolver:\n..."
+  }
+]
 ```
 
-Copy AI installer `iso` file:
+## Download Assisted Installer Discovery ISO
+
+Obtain Infrastructure Download URL for Discovery ISO Image:
 
 ```shell
-# Download iso named discovery-image-"$OPENSHIFT_CLUSTER".iso
-$ curl -L \
-  "http://$ASSISTED_SERVICE_API/api/assisted-install/v1/clusters/$CLUSTER_ID/downloads/image" \
-  -o discovery-image-"$OPENSHIFT_CLUSTER".iso \
-  -H "Authorization: Bearer $TOKEN"
+$ export DISCOVERY_URL=$(curl \
+      --silent \
+      --header "Authorization: Bearer ${TOKEN}" \
+      "https://api.openshift.com/api/assisted-install/v2/infra-envs/${INFRA_ENV_ID}/downloads/image-url" \
+      | jq -r '.url')
+```
+
+Download from URL:
+
+```shell
+$ wget -qq "$DISCOVERY_URL" -O discovery.iso
+```
+
+## Update `discovery.iso` bootstrap kernel network settings:
+
+```shell
+$ export KERNEL_ARGS="console=ttyS0 rd.neednet=1 ip=${OPENSHIFT_IP}::${GATEWAY}:255.255.255.0:${OPENSHIFT_HOSTNAME}.${OPENSHIFT_CLUSTER}.${OPENSHIFT_DOMAIN}:enp0s1:off::[4E:B5:D2:58:F8:56] nameserver=${HOST_IP} nameserver="${GATEWAY}" nameserver=8.8.8.8"
+
+$ coreos-installer iso kargs modify -a "$KERNEL_ARGS" discovery.iso
+```
+
+```shell
+$ coreos-installer iso kargs show discovery.iso
+  coreos.liveiso=rhcos-415.92.202311241643-0 ignition.firstboot ignition.platform.id=metal console=ttyS0 rd.neednet=1 ip=192.168.0.40::192.168.0.1:255.255.255.0:conri-openshift-sno.consul-openshift-sno.openshift.local.io:enp0s1:off::[4E:B5:D2:58:F8:56] nameserver=192.168.0.100 nameserver=192.168.0.1 nameserver=8.8.8.8
 ```
 
 ## Create OpenShift Agent Installation ISO
 
 This step configures the final Agent Installation ISO with the properly pre-populated network
 settings to run on local Virtual Machine.
+
+### Create `install-config.yaml` and `agent-config.yaml`
+
+Create the following template files:
+
+**Filename**: `install-config-template.yaml`
+```yaml
+apiVersion: v1
+metadata:
+  name: "$OPENSHIFT_CLUSTER"
+baseDomain: "$OPENSHIFT_DOMAIN"
+compute:
+  - name: worker
+    replicas: 0
+controlPlane:
+  name: master
+  replicas: 1
+  architecture: arm64
+networking:
+  clusterNetwork:
+    - cidr: 10.128.0.0/14
+      hostPrefix: 23
+  machineNetwork:
+    - cidr: "$CIDR"
+  networkType: OVNKubernetes
+  serviceNetwork:
+    - 172.30.0.0/16
+platform:
+  none: {}
+bootstrapInPlace:
+  installationDisk: /dev/vda
+fips: false
+pullSecret: $PULL_SECRET
+sshKey: "$OPENSHIFT_SSH_KEY"
+```
+
+**Filename**: `agent-config-template.yaml`
+```yaml
+apiVersion: v1alpha1
+kind: AgentConfig
+metadata:
+  name: "$OPENSHIFT_CLUSTER"
+rendezvousIP: "$OPENSHIFT_IP"
+hosts:
+    - hostname: "$OPENSHIFT_HOSTNAME"
+      interfaces:
+        - name: "enp0s1"
+          macAddress: "4E:B5:D2:58:F8:56"
+      rootDeviceHints:
+        deviceName: "/dev/vda"
+      networkConfig:
+        interfaces:
+          - name: "enp0s1"
+            type: ethernet
+            state: up
+            mac-address: "4E:B5:D2:58:F8:56"
+            ipv4:
+              enabled: true
+              address:
+                - ip: "$OPENSHIFT_IP"
+                  prefix-length: 23
+              dhcp: false
+        dns-resolver:
+          config:
+            server:
+              - "$HOST_IP"
+        routes:
+          config:
+            - destination: "0.0.0.0/0"
+              next-hop-address: "$GATEWAY"
+              next-hop-interface: "enp0s1"
+              table-id: 254
+```
+
+Create OpenShift installer directory:
+
+```shell
+$ mkdir --parents ./ocp
+```
+
+Use template files and `envsubst` to generate install directory configs:
+
+```shell
+$ envsubst <agent-config-template.yaml >ocp/agent-config.yaml && \
+  envsubst <install-config-template.yaml >ocp/install-config.yaml
+```
 
 ### Build `agent.aarch64.iso`
 
