@@ -5,7 +5,7 @@ layout: default
 
 ## Consul on Kubernetes | Datadog DogstatsD Configuration
 
-![consul-dogstatsd](https://github.com/natemollica-nm/devops/assets/57850649/17848477-8c2d-4fc7-8709-95ecd3db4ba1)
+![image](https://github.com/natemollica-nm/devops/assets/57850649/ce673115-2bd6-47fc-b384-e128b5f4494f)
 
 For user running **_Consul versions less than 1.16.x_**, Datadog DogstatsD integration requires manual 
 configuration for collecting Consul Server specific runtime metrics. This article aims to outline the 
